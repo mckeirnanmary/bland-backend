@@ -3,32 +3,33 @@ const router = express.Router();
 const axios = require('axios');
 
 router.post('/', async (req, res) => {
-  const { calls } = req.body; // Array of contact info
+  const { calls } = req.body; // expects [{ phone, prompt }, ...]
+
+  if (!Array.isArray(calls) || calls.length === 0) {
+    return res.status(400).json({ error: 'calls must be a non-empty array' });
+  }
 
   try {
-    const response = await axios.post('https://api.bland.ai/v1/batches', {
-      calls,
-      voice_id: "nova", // or your preferred voice
-      prompt: "Hi {{full_name}}, this is Nina from Publishers Clearing House...",
-      function_call: {
-        name: "verify_contact",
-        parameters: {
-          full_name: "{{full_name}}",
-          address: "{{street_address}}, {{city}}, {{state}}, {{zip_code}}"
+    const response = await axios.post(
+      'https://api.bland.ai/v1/batches',
+      {
+        calls: calls.map(({ phone, prompt }) => ({
+          phone,
+          prompt,
+        })),
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${process.env.BLAND_API_KEY}`,
+          'Content-Type': 'application/json',
         },
-        url: `${process.env.BASE_URL}/api/verify`
       }
-    }, {
-      headers: {
-        Authorization: `Bearer ${process.env.BLAND_API_KEY}`,
-        'Content-Type': 'application/json'
-      }
-    });
+    );
 
-    res.json({ success: true, data: response.data });
+    return res.json({ message: 'Batch calls started', data: response.data });
   } catch (error) {
-    console.error(error.response?.data || error.message);
-    res.status(500).json({ success: false, error: error.response?.data || error.message });
+    console.error('Error starting batch calls:', error.response?.data || error.message);
+    return res.status(500).json({ error: 'Failed to start batch calls' });
   }
 });
 
