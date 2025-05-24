@@ -2,8 +2,13 @@ const express = require('express');
 const router = express.Router();
 const axios = require('axios');
 
+// GET route for test/debug
+router.get('/', (req, res) => {
+  res.send('✅ start-calls endpoint is live!');
+});
+
 router.post('/', async (req, res) => {
-  const { calls } = req.body; // expects [{ phone, prompt }, ...]
+  const { calls } = req.body;
 
   if (!Array.isArray(calls) || calls.length === 0) {
     return res.status(400).json({ error: 'calls must be a non-empty array' });

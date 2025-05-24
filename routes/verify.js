@@ -1,14 +1,14 @@
 const express = require('express');
 const router = express.Router();
 
+// GET route for test/debug
 router.get('/', (req, res) => {
-  res.send('Verification endpoint is active.');
+  res.send('✅ verify endpoint is live!');
 });
 
 router.post('/', (req, res) => {
   const { full_name, address } = req.body;
 
-  // Basic dummy verification logic
   if (full_name && address) {
     return res.json({
       result: true,
